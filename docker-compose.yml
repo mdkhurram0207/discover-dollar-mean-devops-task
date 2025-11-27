@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: dd-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    image: your-dockerhub-username/dd-mean-backend:latest
+    container_name: dd-backend
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/meanapp
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build: ./frontend
+    image: your-dockerhub-username/dd-mean-frontend:latest
+    container_name: dd-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  mongo_data:

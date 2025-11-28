@@ -12,25 +12,37 @@ services:
 
   backend:
     build: ./backend
-    image: your-dockerhub-username/dd-mean-backend:latest
+    image: mdkhurram/dd-mean-backend:latest
     container_name: dd-backend
     restart: always
     environment:
       - MONGO_URL=mongodb://mongo:27017/meanapp
     depends_on:
       - mongo
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
 
   frontend:
     build: ./frontend
-    image: your-dockerhub-username/dd-mean-frontend:latest
+    image: mdkhurram/dd-mean-frontend:latest
     container_name: dd-frontend
     restart: always
     depends_on:
       - backend
+    expose:
+      - "80"
+
+  nginx:
+    image: nginx:alpine
+    container_name: dd-nginx
+    restart: always
+    depends_on:
+      - frontend
+      - backend
     ports:
-      - "4200:80"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
 
 volumes:
   mongo_data:

@@ -1,18 +1,19 @@
-# Stage 1: Build Angular app
-FROM node:18-alpine AS build
+FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
+
+# Install only dependencies
 COPY package*.json ./
 RUN npm install
+
+# Copy the rest of the backend code
 COPY . .
-RUN npm run build --prod
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# MongoDB connection (your app should read this)
+ENV MONGO_URL=mongodb://mongo:27017/meanapp
 
-# We may update path later after checking build folder name
-COPY --from=build /app/dist /usr/share/nginx/html
+# Backend port
+EXPOSE 3000
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# Start the server
+CMD ["npm", "start"]

@@ -1,0 +1,43 @@
+name: Deploy MEAN App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build & push Backend image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/dd-mean-backend ./backend
+        docker push ${{ secrets.DOCKER_USERNAME }}/dd-mean-backend
+
+    - name: Build & push Frontend image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/dd-mean-frontend ./frontend
+        docker push ${{ secrets.DOCKER_USERNAME }}/dd-mean-frontend
+
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        script: |
+          cd ~/discover-dollar-mean-devops-task
+          git pull origin main
+          sudo docker compose pull
+          sudo docker compose down
+          sudo docker compose up -d
